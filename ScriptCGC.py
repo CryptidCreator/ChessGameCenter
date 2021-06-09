@@ -159,9 +159,9 @@ def points_update(var):
     return var
 
 
-def play_round(competition):    # Problème : les points (que je modifie avec ask_result) sont réinialiser si
-    playing_matches = []        # on relance play_round
-    done_matches = []
+def play_round(competition):    # Problème : les points (que je modifie avec la fonction ask_result) sont réinialisés
+    playing_matches = []        # si on relance play_round! Je pense que ça peux venir de ma fonction points_update,
+    done_matches = []           # mon dernier ajout, mais je n'ai pas trouvé
     points_update(competition.participants)
     half = int(len(competition.participants)/2)
     for j in range(half):
