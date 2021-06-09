@@ -150,16 +150,17 @@ def points_update(var):
         for i in range(len(var)):
             short = 0
             temp_i = var[i]
-            if short < temp_i.points:   # AttributeError: 'int' object has no attribute 'points'
+            print(temp_i)
+            while short < temp_i.points:
                 short = temp_i.points
                 sorted_list[j] = var[i]
-                var[i] = 0
+            temp_i.points = 0
     var = sorted_list
     return var
 
 
-def play_round(competition):
-    playing_matches = []
+def play_round(competition):    # Problème : les points (que je modifie avec ask_result) sont réinialiser si
+    playing_matches = []        # on relance play_round
     done_matches = []
     points_update(competition.participants)
     half = int(len(competition.participants)/2)
@@ -189,27 +190,26 @@ while True:
     print("- AFFICHER LE TOURNOI : 4")
     print("- LANCER LE TOURNOI : 5")
     print("- QUITTER L'APPLICATION : 0")
-    Chiffre = int(input("CHOIX :"))
-    if Chiffre == 1:
-        players.append(set_player())
-    elif Chiffre == 2:
-        print("")
-        display_players(players)
-        print("")
-    elif Chiffre == 3:
-        tournament = set_tournament()
-    elif Chiffre == 4:
-        print("")
-        display_tournament(tournament)
-        print("")
-    elif Chiffre == 5:
-        play_round(tournament)
-    elif Chiffre == 0:
-        break
-    else:
-        print("")
+    try:
+        Chiffre = int(input("CHOIX :"))
+        if Chiffre == 1:
+            players.append(set_player())
+        elif Chiffre == 2:
+            print("")
+            display_players(players)
+            print("")
+        elif Chiffre == 3:
+            tournament = set_tournament()
+        elif Chiffre == 4:
+            print("")
+            display_tournament(tournament)
+            print("")
+        elif Chiffre == 5:
+            play_round(tournament)
+        elif Chiffre == 0:
+            break
+    except ValueError:
         print("Veuillez choisir un chiffre disponible!")
-        print("")
 
 
 # Aprés lancement du tournoi :
