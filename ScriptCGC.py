@@ -155,9 +155,8 @@ def ask_result(tupl, tab):
 
 def points_update(var):
     sorted_tab = [""] * len(var)
-#    high = 0
+    high = 0
     for j in range(len(var)):
-        high = 0
         for i in range(len(var)):
             temp_i = var[i]
             if temp_i.points >= high:
