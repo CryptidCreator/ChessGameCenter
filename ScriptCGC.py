@@ -95,10 +95,10 @@ def display_player(var):
     print("Points :", var.points)
 
 
-def display_players(list):
-    for i in range(len(list)):
+def display_players(tab):
+    for i in range(len(tab)):
         print("Joueur", i + 1, ":")
-        display_player(list[i])
+        display_player(tab[i])
 
 
 def display_tournament(contest):
@@ -121,7 +121,7 @@ def display_match(tupl):
         print(temp.family_name, temp.firstname)
 
 
-def ask_result(tupl):
+def ask_result(tupl, tab):
     while True:
         print("Premier joueur gagnant : 1")
         print("Deuxième joueur gagnant : 2")
@@ -129,49 +129,60 @@ def ask_result(tupl):
         ask_r = int(input("Quel est le résultat du match? :"))
         if ask_r == 1:
             temp = tupl[0]
-            temp.points += 1
-            break
+            n = 0
+            while temp != tab[n]:
+                n += 1
+            tab[n].points += 1
+            return "Joueur", temp
         elif ask_r == 2:
             temp = tupl[1]
-            temp.points += 1
-            break
+            n = 0
+            while temp != tab[n]:
+                n += 1
+            tab[n].points += 1
+            return "Joueur", temp
         elif ask_r == 3:
             for i in range(2):
                 temp = tupl[i]
-                temp.points += 1/2
-            break
+                n = 0
+                while temp != tab[n]:
+                    n += 1
+                tab[n].points += 1/2
+            return "Égalité"
         else:
             print("Choississez 1, 2 ou 3")
 
 
 def points_update(var):
-    sorted_list = [""] * len(var)
+    sorted_tab = [""] * len(var)
+#    high = 0
     for j in range(len(var)):
+        high = 0
         for i in range(len(var)):
-            short = 0
             temp_i = var[i]
-            print(temp_i)
-            while short < temp_i.points:
-                short = temp_i.points
-                sorted_list[j] = var[i]
-            temp_i.points = 0
-    var = sorted_list
-    return var
+            if temp_i.points >= high:
+                temp_j = var[i]
+                key_i = i
+                high = temp_i.points
+        sorted_tab[j] = temp_j
+        temp_z = var[key_i]     # Solution bancale
+        temp_z.points = 0       #
+    return sorted_tab
 
 
-def play_round(competition):    # Problème : les points (que je modifie avec la fonction ask_result) sont réinialisés
-    playing_matches = []        # si on relance play_round! Je pense que ça peux venir de ma fonction points_update,
-    done_matches = []           # mon dernier ajout, mais je n'ai pas trouvé
-    points_update(competition.participants)
+def play_round(competition):
+    playing_matches = []
+    done_matches = []
     half = int(len(competition.participants)/2)
     for j in range(half):
         duo = (competition.participants[j], competition.participants[j + int(half)])
         playing_matches.append(duo)
         display_match(duo)
     for duo in playing_matches:
-        result = ask_result(duo)
+        result = ask_result(duo, competition.participants)
         match = duo, result
         done_matches.append(match)
+    competition.participants = points_update(competition.participants)
 
 
 player1 = Player("Feugueur", "Malik", "2000-03-13", "M", 0)
@@ -188,7 +199,8 @@ while True:
     print("- AFFICHER LES JOUEURS : 2")
     print("- CREER LE TOURNOI : 3")
     print("- AFFICHER LE TOURNOI : 4")
-    print("- LANCER LE TOURNOI : 5")
+    print("- AFFICHER LES PARTICIPANTS : 5")
+    print("- LANCER LE TOURNOI : 6")
     print("- QUITTER L'APPLICATION : 0")
     try:
         Chiffre = int(input("CHOIX :"))
@@ -205,6 +217,8 @@ while True:
             display_tournament(tournament)
             print("")
         elif Chiffre == 5:
+            display_players(tournament.participants)
+        elif Chiffre == 6:
             play_round(tournament)
         elif Chiffre == 0:
             break
