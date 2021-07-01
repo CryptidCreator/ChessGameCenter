@@ -119,12 +119,15 @@ def display_match(tupl):
         temp = tupl[i]
         print("Joueur : ")
         print(temp.family_name, temp.firstname)
+    print("")
 
 
 def ask_result(tupl, tab):
     while True:
-        print("Premier joueur gagnant : 1")
-        print("Deuxième joueur gagnant : 2")
+        print("\n")
+        for i in range(len(tupl)):
+            temp = tupl[i]
+            print(str(temp.family_name), str(temp.firstname), "gagnant :", str(i+1))
         print("Égalité : 3")
         ask_r = int(input("Quel est le résultat du match? :"))
         if ask_r == 1:
@@ -133,14 +136,14 @@ def ask_result(tupl, tab):
             while temp != tab[n]:
                 n += 1
             tab[n].points += 1
-            return "Joueur", temp
+            return temp
         elif ask_r == 2:
             temp = tupl[1]
             n = 0
             while temp != tab[n]:
                 n += 1
             tab[n].points += 1
-            return "Joueur", temp
+            return temp
         elif ask_r == 3:
             for i in range(2):
                 temp = tupl[i]
@@ -153,35 +156,61 @@ def ask_result(tupl, tab):
             print("Choississez 1, 2 ou 3")
 
 
-def points_update(var):
-    sorted_tab = [""] * len(var)
-    high = 0
-    for j in range(len(var)):
-        for i in range(len(var)):
-            temp_i = var[i]
-            if temp_i.points >= high:
-                temp_j = var[i]
-                key_i = i
-                high = temp_i.points
-        sorted_tab[j] = temp_j
-        temp_z = var[key_i]     # Solution bancale
-        temp_z.points = 0       #
+def points_update(participants):
+    sorted_tab = sorted(participants, key=lambda Player: Player.points, reverse=True)
     return sorted_tab
 
 
 def play_round(competition):
-    playing_matches = []
+    play = len(competition.participants) - 1
     done_matches = []
-    half = int(len(competition.participants)/2)
-    for j in range(half):
-        duo = (competition.participants[j], competition.participants[j + int(half)])
-        playing_matches.append(duo)
-        display_match(duo)
-    for duo in playing_matches:
-        result = ask_result(duo, competition.participants)
-        match = duo, result
-        done_matches.append(match)
-    competition.participants = points_update(competition.participants)
+    past_matches = []
+    while play > 0:
+        print("Round :", len(competition.participants) - play)
+        playing_matches = []
+        playing_players = []
+        half = int(len(competition.participants)/2)
+        for j in range(half): # faire jouer tous le monde
+            duo = (competition.participants[j], competition.participants[j + int(half)])
+            reversed_duo = (competition.participants[j + int(half)], competition.participants[j])
+            if duo not in past_matches:
+                print("NOT")
+                playing_matches.append(duo)
+                playing_players.append(competition.participants[j])
+                playing_players.append(competition.participants[j + int(half)])
+                past_matches.append(duo)
+                past_matches.append(reversed_duo)
+                print("\n")
+                display_match(duo)
+            else:
+                print("OK")
+                for i in range(len(competition.participants)):
+                    if j == i:
+                        continue
+                    if competition.participants[j] in playing_players:
+                        continue
+                    if competition.participants[i] in playing_players:
+                        continue
+                    temp_duo = (competition.participants[j], competition.participants[i])
+                    if temp_duo in past_matches:
+                        continue
+                    temp_reversed_duo = (competition.participants[i], competition.participants[j])
+                    if temp_reversed_duo in past_matches:
+                        continue
+                    playing_matches.append(temp_duo)
+                    playing_players.append(competition.participants[j])
+                    playing_players.append(competition.participants[i])
+                    past_matches.append(temp_duo)
+                    past_matches.append(temp_reversed_duo)
+                    print("\n")
+                    display_match(temp_duo)
+                    break
+        for duo in playing_matches:
+            result = ask_result(duo, competition.participants)
+            match = duo, result
+            done_matches.append(match)
+        competition.participants = points_update(competition.participants)
+        play -= 1
 
 
 player1 = Player("Feugueur", "Malik", "2000-03-13", "M", 0)
@@ -224,14 +253,8 @@ while True:
     except ValueError:
         print("Veuillez choisir un chiffre disponible!")
 
-
-# Aprés lancement du tournoi :
-# Faire round et match pour un round. Afficher match et demander les résultat
-# Boucle
-# Donner les resultats
-# calculer le classement
-# Donner les prochains matchs
-# Fin de boucle après la finale
-# Donner le classement
-
 # enregistrement (à faire quand tous est fonctionnel)
+
+# Remarque :
+# - nom des variables (Anglais ou français !cohérence!)
+# Fonction (Nommer ce qu'elle prend en types d'arguments et ce qu'elle sort en types)
