@@ -1,4 +1,5 @@
 import datetime
+from tinydb import TinyDB
 
 
 class Player:
@@ -13,21 +14,14 @@ class Player:
 
 class Tournament:
 
-    def __init__(self, name, place, date, participants, time_control, description):
+    def __init__(self, name, place, date, round_number, participants, time_control, description):
         self.name = name
         self.place = place
         self.date = date
-        self.round_number = 0   # Pas modifiable pendant la création
-        self.rounds = []        # Pas modifiable pendant la création
+        self.round_number = round_number
         self.participants = participants
         self.time_control = time_control
         self.description = description
-
-
-class Round:
-
-    def __init__(self, matches):
-        self.matches = matches
 
 
 def set_player():
@@ -68,6 +62,7 @@ def set_tournament():
         if 1 <= indices[i]:
             participants.append(players[indices[i] - 1])
     display_players(participants)
+    rounds_set = int(len(participants)/2)
     print("Controle du temps (Bullet = 1; Blitz = 2; Coup Rapide = 3) :")
     while True:
         ask_mode = int(input("Choississez un des trois modes :"))
@@ -82,8 +77,8 @@ def set_tournament():
             break
         else:
             print("Choississez 1, 2 ou 3")
-#    description = input("Description :")
-    tournament_Add = Tournament(name_set, place_set, date_set, participants, time_control_set, "Tkt bg")
+    description = input("Description :")
+    tournament_Add = Tournament(name_set, place_set, date_set, rounds_set, participants, time_control_set, description)
     return tournament_Add
 
 
@@ -106,7 +101,6 @@ def display_tournament(contest):
     print("Lieu :", contest.place)
     print("Date :", contest.date)
     print("Nombre de tours :", contest.round_number)
-    print("Tournees :", contest.rounds)
     print("Participants :")
     display_players(contest.participants)
     print("Contrôle du temps :", contest.time_control)
@@ -170,20 +164,26 @@ def play_round(competition):
         playing_matches = []
         playing_players = []
         half = int(len(competition.participants)/2)
-        for j in range(half): # faire jouer tous le monde
-            duo = (competition.participants[j], competition.participants[j + int(half)])
-            reversed_duo = (competition.participants[j + int(half)], competition.participants[j])
+        for j in range(len(competition.participants)):
+            try:
+                n = j + int(half)
+                duo = (competition.participants[j], competition.participants[n])    # half = IndexError
+                reversed_duo = (competition.participants[n], competition.participants[j])
+            except IndexError:
+                n = j - int(half)
+                duo = (competition.participants[j], competition.participants[n])    # half = IndexError
+                reversed_duo = (competition.participants[n], competition.participants[j])
             if duo not in past_matches:
-                print("NOT")
+                # print("NOT") : Technique pour retrouver quelle branche a un problème
                 playing_matches.append(duo)
                 playing_players.append(competition.participants[j])
-                playing_players.append(competition.participants[j + int(half)])
+                playing_players.append(competition.participants[n])
                 past_matches.append(duo)
                 past_matches.append(reversed_duo)
                 print("\n")
                 display_match(duo)
             else:
-                print("OK")
+                # print("OK") : Technique pour retrouver quelle branche a un problème
                 for i in range(len(competition.participants)):
                     if j == i:
                         continue
@@ -213,13 +213,38 @@ def play_round(competition):
         play -= 1
 
 
+def serialize_players(participants):
+    serialized_players = []
+    for i in range(len(participants)):
+        temp_participant = participants[i]
+        serialized_player = {
+            'family_name': temp_participant.family_name,
+            'firstname': temp_participant.firstname,
+            'date_of_birth': temp_participant.date_of_birth,
+            'gender': temp_participant.gender,
+            'points': temp_participant.points}
+        serialized_players.append(serialized_player)
+    return serialized_players
+
+
+def serialize_tournament(contest):
+    serialized_tournament = {
+        'name': contest.name,
+        'place': contest.place,
+        'date': contest.date,
+        'round_number': contest.round_number,
+        'time_control': contest.time_control,
+        'description': contest.description}
+    return serialized_tournament
+
+
 player1 = Player("Feugueur", "Malik", "2000-03-13", "M", 0)
 player2 = Player("Bulard", "Julien", "1992-05-27", "M", 0)
 player3 = Player("Maukeur", "Feli", "1999-09-09", "F", 0)
 player4 = Player("Juste", "Innome", "1990-11-06", "M", 0)
 players = [player1, player2, player3, player4]
 
-tournament = Tournament("CG-Senlis", "Senlis", "2021-06-02", players, "Bullet", "Tkt bg")
+tournament = Tournament("CG-SENLIS", "Senlis", "2021-06-02", 3, players, "Bullet", "Tkt bg")
 
 while True:
     print("MENU :")
@@ -229,6 +254,9 @@ while True:
     print("- AFFICHER LE TOURNOI : 4")
     print("- AFFICHER LES PARTICIPANTS : 5")
     print("- LANCER LE TOURNOI : 6")
+    print("- CREER LE FICHIER D'ARCHIVE : 7")
+    print("- ARCHIVER LE TOURNOI : 8")
+    print("- ARCHIVER LES PARTICIPANTS : 9")
     print("- QUITTER L'APPLICATION : 0")
     try:
         Chiffre = int(input("CHOIX :"))
@@ -248,12 +276,20 @@ while True:
             display_players(tournament.participants)
         elif Chiffre == 6:
             play_round(tournament)
+        elif Chiffre == 7:
+            db = TinyDB(input("Nom du fichier d'archive : ") + ".json")
+            tournaments_table = db.table("tournament")
+            tournaments_table.truncate()
+            players_table = db.table("players")
+            players_table.truncate()
+        elif Chiffre == 8:
+            tournaments_table.insert(serialize_tournament(tournament))
+        elif Chiffre == 9:
+            players_table.insert_multiple(serialize_players(tournament.participants))
         elif Chiffre == 0:
             break
     except ValueError:
         print("Veuillez choisir un chiffre disponible!")
-
-# enregistrement (à faire quand tous est fonctionnel)
 
 # Remarque :
 # - nom des variables (Anglais ou français !cohérence!)
